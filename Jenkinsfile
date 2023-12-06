@@ -1,21 +1,21 @@
 pipeline {
-    agent any
-
-    stages {
-        stage('Build') {
-            steps {
-                echo 'Building..'
-            }
+    agent {
+        docker {
+            image 'katalonstudio/katalon'
+            args "-u root"
         }
+    }
+    stages {
         stage('Test') {
             steps {
-                echo 'Testing..'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying....'
+                sh 'katalon-execute.sh -browserType="Chrome" -retry=0 -statusDelay=15 -testSuitePath="Test Suites/Simple Test Suite"'
             }
         }
     }
-}
+    post {
+        always {
+            archiveArtifacts artifacts: 'report/**/*.*', fingerprint: true
+            junit 'report/**/JUnit_Report.xml'
+        }
+    }
+}   
